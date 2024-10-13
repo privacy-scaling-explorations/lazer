@@ -1,0 +1,70 @@
+diff -PrauN a/inner.h b/inner.h
+--- a/inner.h	2020-10-07 05:18:34.000000000 +0200
++++ b/inner.h	2023-05-19 16:47:28.000000000 +0200
+@@ -592,6 +592,9 @@
+ int Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,
+ 	const uint16_t *h, unsigned logn, uint8_t *tmp);
+ 
++int Zf(reconstruct_s1)(int16_t *s1, const uint16_t *c0, const int16_t *s2,
++	const uint16_t *h, unsigned logn, uint8_t *tmp);
++
+ /*
+  * Compute the public key h[], given the private key elements f[] and
+  * g[]. This computes h = g/f mod phi mod q, where phi is the polynomial
+diff -PrauN a/vrfy.c b/vrfy.c
+--- a/vrfy.c	2020-10-07 05:18:34.000000000 +0200
++++ b/vrfy.c	2023-05-19 17:07:32.000000000 +0200
+@@ -640,6 +640,53 @@
+ 	mq_poly_tomonty(h, logn);
+ }
+ 
++int
++Zf(reconstruct_s1)(int16_t *s1, const uint16_t *c0, const int16_t *s2,
++	const uint16_t *h, unsigned logn, uint8_t *tmp)
++{
++	size_t u, n;
++        uint16_t *tt;
++
++	n = (size_t)1 << logn;
++	tt = (uint16_t *)tmp;
++
++	/*
++	 * Reduce s2 elements modulo q ([0..q-1] range).
++	 */
++	for (u = 0; u < n; u ++) {
++		uint32_t w;
++
++		w = (uint32_t)s2[u];
++		w += Q & -(w >> 31);
++		tt[u] = (uint16_t)w;
++	}
++
++	/*
++	 * Compute -s1 = s2*h - c0 mod phi mod q (in tt[]).
++	 */
++	mq_NTT(tt, logn);
++	mq_poly_montymul_ntt(tt, h, logn);
++	mq_iNTT(tt, logn);
++	mq_poly_sub(tt, c0, logn);
++
++	/*
++	 * Normalize s1 elements into the [-q/2..q/2] range.
++	 */
++	for (u = 0; u < n; u ++) {
++		int32_t w;
++
++		w = (int32_t)tt[u];
++		w -= (int32_t)(Q & -(((Q >> 1) - (uint32_t)w) >> 31));
++		s1[u] = -(int16_t)w;
++	}
++
++	/*
++	 * Signature is valid if and only if the aggregate (-s1,s2) vector
++	 * is short enough.
++	 */
++	return Zf(is_short)(s1, s2, logn);
++}
++
+ /* see inner.h */
+ int
+ Zf(verify_raw)(const uint16_t *c0, const int16_t *s2,

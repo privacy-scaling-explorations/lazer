@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+import subprocess
+from subprocess import PIPE
+
+tests = [
+    'lazer-test',
+    'bytes-test',
+    'shake128-test',
+    'rng-test',
+    'int-test',
+    'intvec-test',
+    'intmat-test',
+    'polyring-test',
+    'poly-test',
+    'polyvec-test',
+    'polymat-test',
+    'spolymat-test',
+    'quad-test',
+    'dcompress-test',
+    'sage-test.sh',
+    'coder-test',
+    'urandom-test',
+    'brandom-test',
+    'grandom-test',
+    'rejection-test',
+    'abdlop-test',
+    'lnp-quad-test',
+    'lnp-quad-many-test',
+    'lnp-quad-eval-test',
+    'lnp-tbox-test',
+]
+
+# automake test exit status
+TEST_RC_PASS = 0
+TEST_RC_SKIP = 77
+TEST_RC_FAIL = 1
+TEST_RC_ERROR = 99
+
+tests_total = len(tests)
+tests_pass = 0
+tests_skip = 0
+tests_fail = 0
+tests_error = 0
+
+len = len(max(tests, key=len)) + 1
+hline = '' + '-' * (len + 1)
+out = ''
+err = ''
+rc = 0
+
+print(hline)
+for test in tests:
+    print(f"%-{len}s: " % (test), end='')
+
+    p = subprocess.run([f"./{test}"], stdout=PIPE, stderr=PIPE)
+    rc = p.returncode
+    out = p.stdout.decode().strip()
+    err = p.stderr.decode().strip()
+
+    if rc == TEST_RC_PASS:
+        tests_pass += 1
+        print('[PASS]')
+    elif rc == TEST_RC_SKIP:
+        tests_skip += 1
+        print('[SKIP]')
+    elif rc == TEST_RC_FAIL:
+        tests_fail += 1
+        print('[FAIL]')
+        print(f"%-{len + 1}s return : %s" % ('', rc))
+        print(f"%-{len + 1}s stderr : %s" % ('', err))
+        print(f"%-{len + 1}s stdout : %s" % ('', out))
+    else:
+        tests_error += 1
+        print('[ERROR]')
+        print(f"%-{len + 1}s return : %s" % ('', rc))
+        print(f"%-{len + 1}s stderr : %s" % ('', err))
+        print(f"%-{len + 1}s stdout : %s" % ('', out))
+
+print(hline)
+print(f"%-{len}s: %s" % ('TOTAL', tests_total))
+print(f"%-{len}s: %s" % ('PASS', tests_pass))
+print(f"%-{len}s: %s" % ('SKIP', tests_skip))
+print(f"%-{len}s: %s" % ('FAIL', tests_fail))
+print(f"%-{len}s: %s" % ('ERROR', tests_error))
+print(hline)
