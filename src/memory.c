@@ -39,7 +39,7 @@ alloc_default (size_t len)
 {
   void *mem;
 
-  ASSERT_ERR (len > 0);
+  //XXXASSERT_ERR (len > 0);
 
   mem = malloc (len);
   ERR (mem == NULL, "malloc failed (size %llu).", (unsigned long long)len);

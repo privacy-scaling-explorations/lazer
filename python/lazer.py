@@ -1006,23 +1006,26 @@ class polyvec_t:
                 vv=poly_t(ring,val[i:i+offset])
                 self.set_elem(vv,i//offset)
         elif type(val) == list:
-            #assert len(val) == dim
             cur_pos=0
-            for v in val:
-                if type(v) is poly_t:
-                    lib.polyvec_set_elem(self.ptr,cur_pos,v.ptr)
+
+            if all(type(v) == int for v in val):
+                assert len(val)%self.ring.deg==0
+                for j in range(len(val)//self.ring.deg):
+                    vv=poly_t(self.ring,val[j*self.ring.deg:j*self.ring.deg+self.ring.deg])
+                    lib.polyvec_set_elem(self.ptr,cur_pos,vv.ptr)
                     cur_pos+=1
-                elif type(v) is polyvec_t:
-                    for i in range(v.dim):
-                        vv=v.get_elem(i)
-                        lib.polyvec_set_elem(self.ptr,cur_pos,vv.ptr)
+            else:            
+                #assert len(val) == dim
+                for v in val:
+                    if type(v) is poly_t:
+                        lib.polyvec_set_elem(self.ptr,cur_pos,v.ptr)
                         cur_pos+=1
-                elif type(v) is int:
-                    assert len(val)%self.ring.deg==0
-                    for j in range(len(val)//self.ring.deg):
-                        vv=poly_t(self.ring,val[j*self.ring.deg:j*self.ring.deg+self.ring.deg])
-                        lib.polyvec_set_elem(self.ptr,cur_pos,vv.ptr)
-                        cur_pos+=1
+                    elif type(v) is polyvec_t:
+                        for i in range(v.dim):
+                            vv=v.get_elem(i)
+                            lib.polyvec_set_elem(self.ptr,cur_pos,vv.ptr)
+                            cur_pos+=1
+            
             assert cur_pos == dim
 
             # for i in range(dim):
