@@ -18,7 +18,7 @@ verifier = lin_verifier_state_t(P1PP, lib.get_params("param"))
 
 # define kyber1024 ring (R), expand public parameters (A) and generate kyber key pair (sk,pk)
 R = polyring_t(deg, mod)
-A1 = polymat_t.urandom_static(R, m, m, mod, KYBERPP, 0)
+A1 = polymat_t.urandom_static(R, m, n - m, mod, KYBERPP, 0)
 A2 = polymat_t.identity(R, m)
 A = polymat_t(R, m, n, [A1, A2])
 sk = polyvec_t.brandom_static(R, n, 2, secrets.token_bytes(32), 0)
