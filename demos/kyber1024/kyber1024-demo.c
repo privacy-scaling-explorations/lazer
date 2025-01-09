@@ -30,7 +30,8 @@ main (void)
 {
   lazer_init ();
 
-  INT_T (p, 3329)               // Kyber1024 prime modulus
+  INT_T (p, 1);
+  int_set_i64 (p, 3329);            // Kyber1024 prime modulus
   POLYRING_T (Rp, p, 256);      // Kyber1024 degree 256 ring
   const uint8_t pp[32] = { 0 }; // toy public randomness
 
