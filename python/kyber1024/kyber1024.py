@@ -11,6 +11,8 @@ shake128 = hashlib.shake_128(bytes.fromhex("01"))
 P1PP = shake128.digest(32)      # proof system public randomness
 
 from kyber1024_params import mod, deg, m, n     # import kyber parameters
+assert n > m
+
 
 from _kyber1024_params_cffi import lib          # import proof system parameters
 prover = lin_prover_state_t(P1PP, lib.get_params("param"))
