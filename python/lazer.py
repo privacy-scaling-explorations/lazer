@@ -1571,15 +1571,18 @@ class polymat_t:
             for v in val:
                 if type(v) is poly_t:
                     assert self.rows==1
+                    assert cur_col<self.cols
                     self.set_elem(v,0,cur_col)
                     cur_col+=1
                 elif type(v) is polyvec_t:
                     assert v.dim == self.rows
+                    assert cur_col<self.cols
                     self.set_col(cur_col,v)
                     cur_col+=1
                 elif type(v) is polymat_t:
                     assert v.rows == self.rows
                     for i in range(v.cols):
+                        assert cur_col<self.cols
                         vv=v.get_col(i)
                         self.set_col(cur_col,vv)
                         cur_col+=1
