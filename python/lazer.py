@@ -977,7 +977,7 @@ class polyvec_t:
         ring (polyring_t): the polynomial ring that the polynomial is in
         dim (int): the size of the vector
     """
-    def __init__(self,ring: polyring_t,dim,val=None):
+    def __init__(self,ring: polyring_t,dim,val=None,tmp=False):
         """ Initializaion
 
         Args:
@@ -992,7 +992,11 @@ class polyvec_t:
                 polyvec_t - copies the polyvec_t into a new one
         """
         self.ptr = ffi.new("polyvec_t")
+
+#XXX        if tmp == False:
         lib.polyvec_alloc(self.ptr,ring.ptr,dim)
+        self.tmp = tmp
+
         self.dim=dim
         self.ring=ring
         self.muls=0
@@ -1038,7 +1042,8 @@ class polyvec_t:
     def __del__(self):
         """Automatic destructor. Calls the C destructor to release memory from the ptr attribute
         """
-        lib.polyvec_free(self.ptr)
+        if self.tmp == False:
+            lib.polyvec_free(self.ptr)
 
     # lift to a ring with larger modulus
     def lift(self,ring_new: polyring_t):
@@ -1908,8 +1913,8 @@ class polymat_t:
             res=polymat_t(self.ring,self.rows,a.cols)
             res.adds=max(self.adds,a.adds)
             res.muls=max(self.muls,a.muls)
-            temp_row=polyvec_t(self.ring,a.cols)
-            self_row=polyvec_t(self.ring,self.cols)
+            temp_row=polyvec_t(self.ring,a.cols, tmp = True)
+            self_row=polyvec_t(self.ring,self.cols, tmp = True)
             for i in range(self.rows):
                 lib.polymat_get_row(self_row.ptr,self.ptr,i)
                 lib.polyvec_mul2(temp_row.ptr,self_row.ptr,a.ptr)
