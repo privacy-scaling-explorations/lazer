@@ -186,7 +186,8 @@ $(HEXL_DIR): $(HEXL_ZIP)
 
 LABRADOR_CFLAGS = -std=gnu18 -Wall -Wextra -Wmissing-prototypes -Wredundant-decls \
   -Wshadow -Wpointer-arith -Wno-unused-function -fmax-errors=1 -flto=auto -fwrapv \
-  -march=native -mtune=native -O3 -fvisibility=hidden
+  -march=native -mtune=native -O3 -fvisibility=hidden \
+  -mavx512f -mavx512vl -maes -mvaes -mavx512vbmi -mavx512vbmi2 -mavx512vnni
 
 LABRADOR_DIR = src/labrador
 LABRADOR_OBJ_STATIC = \
