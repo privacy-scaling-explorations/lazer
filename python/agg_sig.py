@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from lazer import *
 from lazer import _invmod, _center_list, _l2sq_list
 from labrador import *
@@ -10,7 +12,7 @@ import time
 VBIG=0 # counts how many signatures are too big
 
 #Total Signatures
-sig_num=200
+sig_num=int(sys.argv[1])
 norms=[17017363,17017363,round(1248245003*.75)]
 
 #Falcon parameters
@@ -19,7 +21,7 @@ deg=512
 
 # falcon ring
 FALCON_RING=polyring_t(deg,mod)
-BIGMOD_RING=polyring_t(deg,LAB_RING_40.mod)
+BIGMOD_RING=polyring_t(deg,LAB_RING_48.mod)
 PRIMESIZE=str(math.ceil(math.log2(BIGMOD_RING.mod)))
 
 #use the same sk/pk falcon key to save time on key generation
@@ -44,13 +46,13 @@ PS=proof_statement(deg_list,num_pols_list,norm_list,num_constraints,PRIMESIZE)
 keytime_start=time.perf_counter()
 if SAME_KEY:
     skenc,pkenc,pkpol=falcon_keygen()
-    l_pk=pkpol.lift(BIGMOD_RING) 
+    l_pk=pkpol.lift(BIGMOD_RING)
 else:
     sk_list=[]
     pk_list=[]
     for i in range(sig_num):
         skenc,pkenc,pkpol=falcon_keygen()
-        l_pk=pkpol.lift(BIGMOD_RING) 
+        l_pk=pkpol.lift(BIGMOD_RING)
         sk_list+=[skenc]
         pk_list+=[l_pk]
 keytime_end=time.perf_counter()
@@ -58,19 +60,19 @@ keytime_end=time.perf_counter()
 j=0
 sig_start=time.perf_counter()
 while j<sig_num:
-    
+
     f_t=poly_t.urandom_static(FALCON_RING,FALCON_RING.mod,TARGPP,0)
     l_t=f_t.lift(BIGMOD_RING)
-    
+
     if not SAME_KEY:
         skenc=sk_list[j]
         l_pk=pk_list[j]
-    
-    l_s1, l_s2 = falcon_preimage_sample(skenc, f_t) # s_1+s_2*pkpol=t, return poly_t 
-    
+
+    l_s1, l_s2 = falcon_preimage_sample(skenc, f_t) # s_1+s_2*pkpol=t, return poly_t
+
     l_s1=l_s1.lift(BIGMOD_RING)
     l_s2=l_s2.lift(BIGMOD_RING)
-    
+
     v=poly_t(BIGMOD_RING)
     v=(l_t-l_s1-l_pk*l_s2)*inv_fal_mod
 
@@ -103,6 +105,6 @@ if proof[0] == 0:
 ver_end=time.perf_counter()
 print("Key creation: ",keytime_end-keytime_start)
 print("Signature creation: ",sig_end-sig_start)
-print("Proof Time: ",prove_end-prove_start)
-print("Verification Time: ",ver_end-ver_start)
+print("BENCHMARK: Proof Time: ",prove_end-prove_start)
+print("BENCHMARK: Verification Time: ",ver_end-ver_start)
 #print(VBIG)
