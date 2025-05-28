@@ -477,7 +477,7 @@ out += f"""
 {int_t(f"{name}_q", q)}
 {int_t(f"{name}_qminus1", q - 1)}
 {int_t(f"{name}_m", (q - 1) / gamma, q_nlimbs)}
-{int_t(f"{name}_mby2", (q - 1) / gamma / 2, q_nlimbs)}
+{int_t(f"{name}_mby2", int((q - 1) / gamma / 2), q_nlimbs)}
 {int_t(f"{name}_gamma", gamma, q_nlimbs)}
 {int_t(f"{name}_gammaby2", gamma / 2, q_nlimbs)}
 {int_t(f"{name}_pow2D", 2^D, q_nlimbs)}

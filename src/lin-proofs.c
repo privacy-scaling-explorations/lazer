@@ -3202,12 +3202,24 @@ ___schwartz_zippel_accumulate_z3 (
   INT_T (tmp0, Rq->q->nlimbs);
   INT_T (tmp, 2 * Rq->q->nlimbs);
   INT_T (acc_, 2 * Rq->q->nlimbs);
-  INTVEC_T (f_, nbin * d, Rq->q->nlimbs);
-  INTVEC_T (z3_, 256, Rq->q->nlimbs);
-  INTMAT_T (V, lambda, 256, Rq->q->nlimbs);
-  INTMAT_T (vR_, lambda, nex * d, Rq->q->nlimbs);
-  INTMAT_T (vR, lambda, nex * d, 2 * Rq->q->nlimbs);
-  INTVEC_T (vRf, lambda, 2 * Rq->q->nlimbs);
+  //XXX
+  //INTVEC_T (f_, nbin * d, Rq->q->nlimbs);
+  //INTVEC_T (z3_, 256, Rq->q->nlimbs);
+  //INTMAT_T (V, lambda, 256, Rq->q->nlimbs);
+  //INTMAT_T (vR_, lambda, nex * d, Rq->q->nlimbs);
+  //INTMAT_T (vR, lambda, nex * d, 2 * Rq->q->nlimbs);
+  //INTVEC_T (vRf, lambda, 2 * Rq->q->nlimbs);
+  //XXX
+  intvec_t f_, z3_, vRf;
+  intmat_t V, vR_, vR;
+  if (nbin > 0)
+    intvec_alloc (f_, nbin * d, Rq->q->nlimbs);
+  intvec_alloc (z3_, 256, Rq->q->nlimbs);
+  intmat_alloc (V, lambda, 256, Rq->q->nlimbs);
+  intmat_alloc (vR_, lambda, nex * d, Rq->q->nlimbs);
+  intmat_alloc (vR, lambda, nex * d, 2 * Rq->q->nlimbs);
+  intvec_alloc (vRf, lambda, 2 * Rq->q->nlimbs);
+  //XXX
   intmat_urandom (V, q, log2q, seed, dom);
 
   // printf ("V:\n");
@@ -3672,6 +3684,14 @@ ___schwartz_zippel_accumulate_z3 (
           _free (vREmi[i], sizeof (spolymat_t));
         }
     }
+
+  if (nbin > 0)
+    intvec_free (f_);
+  intvec_free (z3_);
+  intmat_free (V);
+  intmat_free (vR_);
+  intmat_free (vR);
+  intvec_free (vRf);
 }
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
