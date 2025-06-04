@@ -473,8 +473,10 @@ lnp_quad_verify (uint8_t hash[32], poly_t c, polyvec_t z1, polyvec_t z21,
 
   poly_urandom_autostable (c2, params->omega, params->log2omega, cseed, 0);
   b = poly_eq (c, c2);
-  if (!b)
+  if (!b) {
+    //printf("XXX recovering challenge failed.\n");
     goto ret;
+  }
 
   /* check bounds */
 
@@ -489,20 +491,26 @@ lnp_quad_verify (uint8_t hash[32], poly_t c, polyvec_t z1, polyvec_t z21,
 
   polyvec_l2sqr (l2sqr, z1);
   b = int_le (l2sqr, bnd);
-  if (!b)
+  if (!b) {
+    //printf("z1 norm bound check failed.");
     goto ret;
+  }
 
   polyvec_subscale (tmp1, gamma, w1, 0);
   polyvec_l2sqr (l2sqr, tmp1);
   b = int_le (l2sqr, params->Bsqr);
-  if (!b)
+  if (!b) {
+    //printf("norm bound check failed.");
     goto ret;
+  }
 
   /* 2*linf(h) <= m */
   polyvec_linf (linf, h);
   b = int_le (linf, m);
-  if (!b)
+  if (!b) {
+    //printf("h norm bound check failed.");
     goto ret;
+  }
 
   /* update fiat-shamir hash */
   memcpy (hash, cseed, 32);
