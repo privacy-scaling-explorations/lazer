@@ -186,8 +186,8 @@ for i in bdlop:
     # cant put binary subvecs in ajtai (Pm not implemented)
     assert wbin[i] == 0
     if wl2[i] > 0:
-        Em_indices += [list(range(len(s1_indices),
-                                  len(s1_indices)+len(wpart[i])))]
+        Em_indices += [list(range(len(m_indices),
+                                  len(m_indices)+len(wpart[i])))]
     m_indices += wpart[i]
 
 # to lower ring deg
@@ -257,8 +257,8 @@ if Em_indices == []:
     strEm = "NULL"
     strEm_nrows = "NULL"
 else:
-    strEm = f"{vname}_Es"
-    strEm_nrows = f"{vname}_Es_nrows"
+    strEm = f"{vname}_Em"
+    strEm_nrows = f"{vname}_Em_nrows"
     out += f"static const unsigned int *{vname}_Em[{len(Em_indices)}] = {{ "
     for i in range(len(Em_indices)):
         out += f"{vname_Em[i]}, "

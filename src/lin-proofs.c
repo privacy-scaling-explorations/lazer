@@ -4339,6 +4339,8 @@ __verify_statement (_lnp_prover_state_t state_, const lin_params_t lparam)
 
       polyvec_l2sqr (l2sqr, t);
       int_set (l2sqr2, params->l2Bsqr[i]);
+
+      //printf ("%u\n", i);
       //int_dump (l2sqr);
       //int_dump (l2sqr2);
       ASSERT_ERR (int_le (l2sqr, l2sqr2) == 1);
