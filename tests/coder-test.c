@@ -81,7 +81,7 @@ encode_uniform (void)
 static void
 encode_gaussian (void)
 {
-  const unsigned int log2o = 10;
+  const unsigned int log2o = 32;
   unsigned int nbits1, nbits2, nbits3, nbits, i;
   CODER_STATE_T (state);
   uint8_t buf[100000];
