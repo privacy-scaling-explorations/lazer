@@ -398,6 +398,10 @@ class poly_t:
         """
         return poly_t(self.ring)
 
+    def fromcrt(self):
+        lib.poly_fromcrt(self.ptr)
+        return self
+
     ## Set the coefficients of a polynomial'
     # @param coeffs list or dict of coefficients.
     def set_coeffs(self, coeffs, pos=None):
@@ -977,7 +981,7 @@ class polyvec_t:
         ring (polyring_t): the polynomial ring that the polynomial is in
         dim (int): the size of the vector
     """
-    def __init__(self,ring: polyring_t,dim,val=None):
+    def __init__(self,ring: polyring_t,dim,val=None,tmp=False):
         """ Initializaion
 
         Args:
@@ -992,7 +996,11 @@ class polyvec_t:
                 polyvec_t - copies the polyvec_t into a new one
         """
         self.ptr = ffi.new("polyvec_t")
+
+#XXX        if tmp == False:
         lib.polyvec_alloc(self.ptr,ring.ptr,dim)
+        self.tmp = tmp
+
         self.dim=dim
         self.ring=ring
         self.muls=0
@@ -1038,7 +1046,12 @@ class polyvec_t:
     def __del__(self):
         """Automatic destructor. Calls the C destructor to release memory from the ptr attribute
         """
-        lib.polyvec_free(self.ptr)
+        if self.tmp == False:
+            lib.polyvec_free(self.ptr)
+
+    def fromcrt(self):
+        lib.polyvec_fromcrt(self.ptr)
+        return self
 
     # lift to a ring with larger modulus
     def lift(self,ring_new: polyring_t):
@@ -1619,6 +1632,10 @@ class polymat_t:
         self.adds=0
         self.muls=0
 
+    def fromcrt(self):
+        lib.polymat_fromcrt(self.ptr)
+        return self
+
     def set_elem(self,val,row,col,pos=None):
         """Sets a position (either of the polynomial or a polynomial coefficient)
         
@@ -1887,7 +1904,7 @@ class polymat_t:
             if self.ring.deg !=64:
                 for i in range(res.rows):
                     res.set_row(i,a*self.get_row(i))
-                #return res
+                return res #XXXXXXXXXXXXXXXXXXXXXXXXXXXX
             lib.polymat_scale2(res.ptr,a.ptr,self.ptr)
         elif type(a) is polyvec_t:
             #multiplication of different rings
@@ -1904,16 +1921,32 @@ class polymat_t:
                 res.muls=max(self.muls,a.muls)
                 lib.polyvec_mul(res.ptr,self.ptr,a.ptr)
         elif type(a) is polymat_t:
-            assert self.cols==a.rows
-            res=polymat_t(self.ring,self.rows,a.cols)
-            res.adds=max(self.adds,a.adds)
-            res.muls=max(self.muls,a.muls)
-            temp_row=polyvec_t(self.ring,a.cols)
-            self_row=polyvec_t(self.ring,self.cols)
-            for i in range(self.rows):
-                lib.polymat_get_row(self_row.ptr,self.ptr,i)
-                lib.polyvec_mul2(temp_row.ptr,self_row.ptr,a.ptr)
-                lib.polymat_set_row(res.ptr,temp_row.ptr,i)
+            #multiplication of different rings
+            if self.ring.deg != 64:
+                assert self.ring.deg==a.ring.deg and self.ring.mod==a.ring.mod
+                assert self.cols==a.rows
+                new_ring=polyring_t(64,self.ring.mod)
+                res=polymat_t(self.ring,self.rows,a.cols)
+                res.adds=max(self.adds,a.adds)
+                res.muls=max(self.muls,a.muls)
+                temp_col=polyvec_t(self.ring,a.rows, tmp = True)
+
+                defmat,_=lin_to_isoring(new_ring,self.ring,self,temp_col)
+                for i in range(a.cols):
+                    lib.polymat_get_col(temp_col.ptr,a.ptr,i)
+                    _,defvec=lin_to_isoring(new_ring,self.ring,self,temp_col)
+                    rcol=(defmat*defvec).from_isoring(self.ring)
+                    lib.polymat_set_col(res.ptr,rcol.ptr,i)
+            else:
+                res=polymat_t(self.ring,self.rows,a.cols)
+                res.adds=max(self.adds,a.adds)
+                res.muls=max(self.muls,a.muls)
+                temp_row=polyvec_t(self.ring,a.cols, tmp = True)
+                self_row=polyvec_t(self.ring,self.cols, tmp = True)
+                for i in range(self.rows):
+                    lib.polymat_get_row(self_row.ptr,self.ptr,i)
+                    lib.polyvec_mul2(temp_row.ptr,self_row.ptr,a.ptr)
+                    lib.polymat_set_row(res.ptr,temp_row.ptr,i)
         
         res.muls+=1
         return res

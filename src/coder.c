@@ -222,7 +222,7 @@ coder_enc_grandom (coder_state_t state, const intvec_t v, unsigned int log2o)
 
   ASSERT_ERR (state->out != NULL);
   ASSERT_ERR (state->in == NULL);
-  ASSERT_ERR (v->nlimbs == 1);
+  // XXX ASSERT_ERR (v->nlimbs == 1);
 
   _byte = state->out;
   _bit = state->bit_off;
@@ -234,6 +234,13 @@ coder_enc_grandom (coder_state_t state, const intvec_t v, unsigned int log2o)
   {
     elem = intvec_get_elem_src (v, i);
     z = int_get_i64 (elem);
+
+    // XXX
+    for (j = 1; j < v->nlimbs; j++)
+      {
+        ASSERT_ERR (elem->limbs[j] == 0);
+      }
+    // XXX
 
     z0 = z - ((z & (~(limb_t)0 << log2ao)));
     // z0 = z - ((z >> log2ao) << log2ao);
@@ -307,7 +314,7 @@ coder_dec_grandom (coder_state_t state, intvec_t v, unsigned int log2o)
         _inc_idx (&nbytes, &_bit);
       }
 
-    if ((z0 & (1 << (log2ao - 1))) > 0)
+    if ((z0 & ((limb_t)1 << (log2ao - 1))) > 0)
       z0 |= (((unsigned long)~0) << log2ao); /* sign-extend */
 
     z = ao * z1 + z0;

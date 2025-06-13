@@ -615,7 +615,8 @@ _lnp_tbox_prove (uint8_t hash[32], polyvec_t tB, polyvec_t h, poly_t c,
       DEBUG_PRINTF (DEBUG_LEVEL >= 2, "%s", "schwarz-zippel z4 evalqs");
       ___schwartz_zippel_accumulate_z4 (
           R2prime_sz, r1prime_sz, r0prime_sz, R2prime_sz2, r1prime_sz2,
-          r0prime_sz2, R2t, r1t, r0t, Ds, Dm, u, oDs, oDm, z4, hash0, // XXX why hash0 needed ??
+          r0prime_sz2, R2t, r1t, r0t, Ds, Dm, u, oDs, oDm, z4,
+          hash0, // XXX why hash0 needed ??
           lambda * (2 * (d - 1) + 2 + Z), params, u0, u1, t0, t1);
     }
   STOPWATCH_STOP (stopwatch_lnp_tbox_prove_sz_z4);
@@ -1001,7 +1002,10 @@ _lnp_tbox_verify (uint8_t hash[32], polyvec_t h, poly_t c, polyvec_t z1,
   /* check norm bounds on z3, z4 */
   b = __lnp_tbox_check_z34 (hash, z3, z4, tB, params);
   if (b != 1)
-    goto ret;
+    {
+      //printf ("XXX z3, z4 norm bound check failed.\n");
+      goto ret;
+    }
   memcpy (hash0, hash, 32); // save this level of FS hash for later
 
   /* check if h's coeffs 0 and d/2 are zero. */
@@ -1012,10 +1016,16 @@ _lnp_tbox_verify (uint8_t hash[32], polyvec_t h, poly_t c, polyvec_t z1,
 
       coeff = poly_get_coeff (poly, 0);
       if (int_eqzero (coeff) != 1)
-        goto ret;
+        {
+          //printf ("XXX h const coeffs are non-zero.\n");
+          goto ret;
+        }
       coeff = poly_get_coeff (poly, d / 2);
       if (int_eqzero (coeff) != 1)
-        goto ret;
+        {
+          //printf ("XXX h middle coeffs are non-zero.\n");
+          goto ret;
+        }
     }
 
   /* tB = (tB_,tg,t) */
@@ -1142,7 +1152,10 @@ _lnp_tbox_verify (uint8_t hash[32], polyvec_t h, poly_t c, polyvec_t z1,
                             Bprime, R2prime_sz, r1prime_sz, r0prime_sz,
                             lambda / 2 + 2, quad);
   if (b != 1)
-    goto ret;
+    {
+      //printf ("XXX lnp_quad_many_verify failed.\n");
+      goto ret;
+    }
 
   b = 1;
 ret:
@@ -1788,14 +1801,20 @@ __lnp_tbox_check_z34 (uint8_t hash[32], polyvec_t z3, polyvec_t z4,
       polyvec_fromcrt (z3);
       polyvec_l2sqr (l2sqr, z3);
       if (int_gt (l2sqr, params->Bz3sqr))
-        goto ret;
+        {
+          //printf ("XXX z3 norm bound check failed.\n");
+          goto ret;
+        }
     }
   if (nprime > 0)
     {
       polyvec_fromcrt (z4);
       polyvec_linf (linf, z4);
       if (int_gt (linf, params->Bz4))
-        goto ret;
+        {
+          //printf ("XXX z3 norm bound check failed.\n");
+          goto ret;
+        }
     }
 
   /* encode ty, tbeta, hash of encoding is seed for challenges */
@@ -2618,7 +2637,7 @@ ___schwartz_zippel_accumulate_l2 (
   for (i = 0; i < Z; i++)
     nelems = MAX (nelems, ni[i]);
 
-  polyvec_alloc (tmp_polyvec, Rq, nelems);
+  polyvec_alloc (tmp_polyvec, Rq, nelems); // XXX
 
   // eval eqs in s1,o(s1),m,o(m),upsilon,o(upsilon)
   // for i in 0,..,Z-1
@@ -2638,7 +2657,8 @@ ___schwartz_zippel_accumulate_l2 (
 
   for (i = 0; i < Z; i++)
     {
-      polyvec_get_subvec (subv2, tmp_polyvec, 0, ni[i], 1);
+      polyvec_get_subvec (subv2, tmp_polyvec, 0, ni[i],
+                          1); // XXX still required?
 
       /* r0' */
       poly_set_zero (r0t);
@@ -3202,12 +3222,24 @@ ___schwartz_zippel_accumulate_z3 (
   INT_T (tmp0, Rq->q->nlimbs);
   INT_T (tmp, 2 * Rq->q->nlimbs);
   INT_T (acc_, 2 * Rq->q->nlimbs);
-  INTVEC_T (f_, nbin * d, Rq->q->nlimbs);
-  INTVEC_T (z3_, 256, Rq->q->nlimbs);
-  INTMAT_T (V, lambda, 256, Rq->q->nlimbs);
-  INTMAT_T (vR_, lambda, nex * d, Rq->q->nlimbs);
-  INTMAT_T (vR, lambda, nex * d, 2 * Rq->q->nlimbs);
-  INTVEC_T (vRf, lambda, 2 * Rq->q->nlimbs);
+  // XXX
+  // INTVEC_T (f_, nbin * d, Rq->q->nlimbs);
+  // INTVEC_T (z3_, 256, Rq->q->nlimbs);
+  // INTMAT_T (V, lambda, 256, Rq->q->nlimbs);
+  // INTMAT_T (vR_, lambda, nex * d, Rq->q->nlimbs);
+  // INTMAT_T (vR, lambda, nex * d, 2 * Rq->q->nlimbs);
+  // INTVEC_T (vRf, lambda, 2 * Rq->q->nlimbs);
+  // XXX
+  intvec_t f_, z3_, vRf;
+  intmat_t V, vR_, vR;
+  if (nbin > 0)
+    intvec_alloc (f_, nbin * d, Rq->q->nlimbs);
+  intvec_alloc (z3_, 256, Rq->q->nlimbs);
+  intmat_alloc (V, lambda, 256, Rq->q->nlimbs);
+  intmat_alloc (vR_, lambda, nex * d, Rq->q->nlimbs);
+  intmat_alloc (vR, lambda, nex * d, 2 * Rq->q->nlimbs);
+  intvec_alloc (vRf, lambda, 2 * Rq->q->nlimbs);
+  // XXX
   intmat_urandom (V, q, log2q, seed, dom);
 
   // printf ("V:\n");
@@ -3672,6 +3704,14 @@ ___schwartz_zippel_accumulate_z3 (
           _free (vREmi[i], sizeof (spolymat_t));
         }
     }
+
+  if (nbin > 0)
+    intvec_free (f_);
+  intvec_free (z3_);
+  intmat_free (V);
+  intmat_free (vR_);
+  intmat_free (vR);
+  intvec_free (vRf);
 }
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -4137,24 +4177,36 @@ lnp_tbox_decproof (size_t *len, const uint8_t *in, polyvec_t tA1, polyvec_t tB,
   /* full-sized elements (log2q bits) */
   rc = coder_dec_urandom3 (cstate, tB, q, log2q);
   if (rc != 0)
-    goto ret;
+    {
+      //printf ("XXX decoding tB failed.\n");
+      goto ret;
+    }
 
   rc = coder_dec_urandom3 (cstate, h, q, log2q);
   if (rc != 0)
-    goto ret;
+    {
+      //printf ("XXX decoding h failed.\n");
+      goto ret;
+    }
 
   /* compressed elements (log2q - D bits) */
   int_set_one (mod);
   int_lshift (mod, mod, log2q - D);
   rc = coder_dec_urandom3 (cstate, tA1, mod, log2q - D);
   if (rc != 0)
-    goto ret;
+    {
+      //printf ("XXX decoding tA1 failed.\n");
+      goto ret;
+    }
 
   /* challenge (log2omega bits) */
   int_set_i64 (mod, 2 * omega + 1);
   rc = coder_dec_urandom2 (cstate, c, mod, log2omega);
   if (rc != 0)
-    goto ret;
+    {
+      //printf ("XXX c tB failed.\n");
+      goto ret;
+    }
 
   coeffs = poly_get_coeffvec (c);
   intvec_redc (coeffs, coeffs, mod);
@@ -4170,7 +4222,10 @@ lnp_tbox_decproof (size_t *len, const uint8_t *in, polyvec_t tA1, polyvec_t tB,
 
   rc = coder_dec_end (cstate);
   if (rc != 1)
-    goto ret;
+    {
+      //printf ("XXX decoding failed.\n");
+      goto ret;
+    }
 
   prooflen = coder_get_offset (cstate);
   ASSERT_ERR (prooflen % 8 == 0);
@@ -4207,7 +4262,7 @@ __lnp_hash_pp_and_statement (__lnp_state_t state, uint8_t hash[32])
 
 #if ASSERT == ASSERT_ENABLED
 static void
-__verify_statement (_lnp_prover_state_t state_)
+__verify_statement (_lnp_prover_state_t state_, const lin_params_t lparam)
 {
   __lnp_state_srcptr state = state_->state;
   lnp_tbox_params_srcptr params = state->params;
@@ -4224,6 +4279,7 @@ __verify_statement (_lnp_prover_state_t state_)
   int_srcptr q = Rq->q;
   poly_t tmp2, zero;
   INT_T (l2sqr, 2 * q->nlimbs);
+  INT_T (l2sqr2, 2 * q->nlimbs);
   INT_T (l2sqr_, q->nlimbs);
   const unsigned int d = Rq->d;
   unsigned int i, j;
@@ -4256,18 +4312,38 @@ __verify_statement (_lnp_prover_state_t state_)
       polyvec_get_subvec (t, tmp, 0, n[i], 1);
 
       polyvec_set_zero (t);
-      // if (state->Es != NULL && state->Es[i] != NULL)
-      //   polyvec_addmul (t, state->Es[i], s1_, 0);
-      // if (state->Em != NULL && state->Em[i] != NULL)
-      // XXX   polyvec_addmul (t, state->Em[i], m_, 0);
+      if (lparam->Es != NULL && lparam->Es[i] != NULL)
+        {
+          for (j = 0; j < lparam->Es_nrows[i]; j++)
+            {
+              unsigned int j2 = lparam->Es[i][j];
+              poly_ptr poly2 = polyvec_get_elem (t, j);
+              poly_ptr poly3 = polyvec_get_elem (state_->s1, j2);
+              poly_add (poly2, poly2, poly3, 0);
+            }
+        }
+
+      if (lparam->Em != NULL && lparam->Em[i] != NULL)
+        {
+          for (j = 0; j < lparam->Em_nrows[i]; j++)
+            {
+              unsigned int j2 = lparam->Em[i][j];
+              poly_ptr poly2 = polyvec_get_elem (t, j);
+              poly_ptr poly3 = polyvec_get_elem (state_->m, j2);
+              poly_add (poly2, poly2, poly3, 0);
+            }
+        }
       polyvec_fromcrt (t);
       polyvec_mod (t, t);
       polyvec_redc (t, t);
 
       polyvec_l2sqr (l2sqr, t);
-      int_mod (l2sqr_, l2sqr, q);
-      int_redc (l2sqr_, l2sqr_, q);
-      ASSERT_ERR (int_le (l2sqr_, params->l2Bsqr[i]) == 1);
+      int_set (l2sqr2, params->l2Bsqr[i]);
+
+      //printf ("%u\n", i);
+      //int_dump (l2sqr);
+      //int_dump (l2sqr2);
+      ASSERT_ERR (int_le (l2sqr, l2sqr2) == 1);
     }
 
   polyvec_get_subvec (t, tmp, 0, nprime, 1);
@@ -4284,26 +4360,34 @@ __verify_statement (_lnp_prover_state_t state_)
   polyvec_mod (t, t);
   polyvec_redc (t, t);
 
-  polyvec_l2sqr (l2sqr, t);
-  int_mod (l2sqr_, l2sqr, q);
-  int_redc (l2sqr_, l2sqr_, q);
-  // XXX ASSERT_ERR (l2sqr_, params->Bprime);
+  polyvec_linf (l2sqr_, t);
+  // XXXASSERT_ERR (l2sqr_, state->Bprime);
+  //int_dump (l2sqr_);
 
   polyvec_get_subvec (t, tmp, 0, nbin, 1);
 
   polyvec_set_zero (t);
-  // XXXif (state->Ps != NULL)
-  //   polyvec_addmul (t, state->Ps, s1_, 0);
-  polyvec_fromcrt (t);
-  polyvec_mod (t, t);
-  polyvec_redc (t, t);
-  for (i = 0; i < polyvec_get_nelems (t); i++)
+  if (lparam->Ps != NULL)
     {
-      poly = polyvec_get_elem (t, i);
-      for (j = 0; j < d; j++)
+      for (j = 0; j < lparam->Ps_nrows; j++)
         {
-          coeff = int_get_i64 (poly_get_coeff (poly, j));
-          ASSERT_ERR (coeff == 0 || coeff == 1);
+          unsigned int j2 = lparam->Ps[j];
+          poly_ptr poly2 = polyvec_get_elem (t, j);
+          poly_ptr poly3 = polyvec_get_elem (state_->s1, j2);
+          poly_add (poly2, poly2, poly3, 0);
+        }
+      // XXX
+      polyvec_fromcrt (t);
+      polyvec_mod (t, t);
+      polyvec_redc (t, t);
+      for (i = 0; i < polyvec_get_nelems (t); i++)
+        {
+          poly = polyvec_get_elem (t, i);
+          for (j = 0; j < d; j++)
+            {
+              coeff = int_get_i64 (poly_get_coeff (poly, j));
+              ASSERT_ERR (coeff == 0 || coeff == 1);
+            }
         }
     }
 
@@ -4335,7 +4419,7 @@ _lin_prover_prove (lin_prover_state_t state__, uint8_t *proof, size_t *len,
   STOPWATCH_START (stopwatch_lnp_prover_prove, "_lnp_prover_prove");
 
 #if ASSERT == ASSERT_ENABLED
-  __verify_statement (state_);
+  __verify_statement (state_, linparam);
 #endif
 
   /*
@@ -4406,7 +4490,10 @@ _lin_verifier_verify (lin_verifier_state_t state__, const uint8_t *proof,
   if (len != NULL)
     *len = prooflen;
   if (b != 1)
-    goto ret;
+    {
+      //printf ("XXX lnp_tbox_decproof failed.\n");
+      goto ret;
+    }
 
   /* reduce inputs XXX required ? */
   // XXX hint
@@ -4437,7 +4524,10 @@ _lin_verifier_verify (lin_verifier_state_t state__, const uint8_t *proof,
                         linparam->Em_nrows, linparam->Ps, linparam->Ps_nrows,
                         state->Ds, state->Dm, state->u, params);
   if (b != 1)
-    goto ret;
+    {
+      //printf ("XXX _lnp_tbox_verify failed.\n");
+      goto ret;
+    }
 
 ret:
   DEBUG_PRINTF (DEBUG_PRINT_FUNCTION_RETURN, "%s end", __func__);
